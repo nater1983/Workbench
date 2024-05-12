@@ -209,12 +209,12 @@ async function copyDirectory(source, destination) {
   }
 }
 
-const keyFile = new GLib.KeyFile();
-keyFile.load_from_file("/.flatpak-info", GLib.KeyFileFlags.NONE);
+// const keyFile = new GLib.KeyFile();
+// keyFile.load_from_file("/.flatpak-info", GLib.KeyFileFlags.NONE);
 // runtime/org.gnome.Sdk/x86_64/master
-const [, , , runtime_version] = keyFile
-  .get_string("Application", "runtime")
-  .split("/");
+// const [, , , runtime_version] = keyFile
+//  .get_string("Application", "runtime")
+//  .split("/");
 
 function isDemoCompatible(demo) {
   const demo_runtime_version = demo["runtime-version"];
