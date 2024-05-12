@@ -209,12 +209,8 @@ async function copyDirectory(source, destination) {
   }
 }
 
-const keyFile = new GLib.KeyFile();
-keyFile.load_from_file("/.flatpak-info", GLib.KeyFileFlags.NONE);
-// runtime/org.gnome.Sdk/x86_64/master
-const [, , , runtime_version] = keyFile
-  .get_string("Application", "runtime")
-  .split("/");
+// Assuming you've retrieved the runtime version from your system
+const runtime_version = "x86_64/master"; // Example runtime version obtained from system
 
 function isDemoCompatible(demo) {
   const demo_runtime_version = demo["runtime-version"];
@@ -227,9 +223,22 @@ function isDemoCompatible(demo) {
     return true;
   }
 
-  console.log(+runtime_version, +demo_runtime_version);
+  // Here you can parse the versions and compare them
+  const [demoArch, demoVersion] = demo_runtime_version.split("/");
+  const [systemArch, systemVersion] = runtime_version.split("/");
 
-  return +runtime_version >= +demo_runtime_version;
+  // Assuming versions are in the format "major.minor" for simplicity
+  const [demoMajor, demoMinor] = demoVersion.split(".");
+  const [systemMajor, systemMinor] = systemVersion.split(".");
+
+  if (+systemMajor > +demoMajor) {
+    return true;
+  } else if (+systemMajor === +demoMajor && +systemMinor >= +demoMinor) {
+    return true;
+  }
+
+  return false;
 }
 
+// Assuming loop.run() is part of your environment setup
 loop.run();
