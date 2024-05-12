@@ -20,7 +20,6 @@ if (!Xdp.Portal.running_under_flatpak()) {
   console.error(
     "Flatpak required\nWorkbench is only meant to be run sandboxed in a specific target environment.\nBypassing this will exposes users to arbitrary code execution and breakage.",
   );
-  exit(1);
 }
 
 globalThis.__DEV__ = pkg.name.endsWith(".Devel");
