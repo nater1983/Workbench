@@ -29,5 +29,8 @@
     "build",
     "builddir"
   ],
-  "vala.languageServerPath": "${workspaceFolder}/.flatpak/vala-language-server.sh"
+  "vala.languageServerPath": "${workspaceFolder}/.flatpak/vala-language-server.sh",
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": "file:///home/sonny/Projects/Workbench/.github/workflows/deploy.yaml"
+  }
 }

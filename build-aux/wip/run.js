@@ -49,14 +49,14 @@ function exists(path) {
   return result;
 }
 
-if (!exists(`${path}/.flatpak/repo`)) {
+if (!exists(`${path}/.frun/repo`)) {
   const { runtime, sdk } = manifest;
   const runtime_version = manifest["runtime-version"];
   // initializes repo
   await run([
     "flatpak",
     "build-init",
-    `${path}/.flatpak/repo`,
+    `${path}/.frun/repo`,
     flatpak_id,
     sdk,
     runtime,
@@ -71,9 +71,9 @@ const prefix = [
   "--disable-updates",
 ];
 const suffix = [
-  `--state-dir=${path}/.flatpak/flatpak-builder`,
+  `--state-dir=${path}/.frun/flatpak-builder`,
   `--stop-at=${app_module.name}`,
-  `${path}/.flatpak/repo`,
+  `${path}/.frun/repo`,
   Gio.File.new_for_path(path).get_relative_path(manifest_file),
 ];
 
@@ -93,23 +93,23 @@ async function buildModules() {
   ]);
 }
 
-if (!exists(`${path}/.flatpak/flatpak-builder`)) {
+if (!exists(`${path}/.frun/flatpak-builder`)) {
   await downloadSources();
   await buildModules();
 }
 
 // builds workbench
-if (!exists(`${path}/_build`)) {
+if (!exists(`${path}/.frun/_build`)) {
   await buildCommand([
     "meson",
     "--prefix",
     "/app",
-    "_build",
+    ".frun/_build",
     "-Dprofile=development",
   ]);
 }
 
-await buildCommand(["meson", "install", "-C", "_build"]);
+await buildCommand(["meson", "install", "-C", ".frun/_build"]);
 // await buildCommand([
 //   `troll/gjspack/bin/gjspack`,
 //   `--appid=${flatpak_id}`,
@@ -123,10 +123,12 @@ await buildCommand(["meson", "install", "-C", "_build"]);
 // ]);
 
 // starts workbench
-const command = argv["--"].length ? argv["--"] : [manifest.command];
-await runCommand(command);
+if (argv.build !== true) {
+  const command = argv["--"].length ? argv["--"] : [manifest.command];
+  await runCommand(command);
+}
 
-function buildCommand(argv) {
+function getCommonArguments() {
   let PATH =
     "/app/bin:/app/bin:/app/bin:/usr/bin:${home}/.var/app/com.visualstudio.code/data/node_modules/bin:/app/bin:/usr/bin";
   const append_path = manifest["build-options"]?.["append-path"];
@@ -137,6 +139,10 @@ function buildCommand(argv) {
     manifest["build-options"]?.["append-ls-library-path"];
   if (append_ld_library_path) LD_LIBRARY_PATH += `:${append_ld_library_path}`;
 
+  return [`--env=PATH=${PATH}`, `--env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}`];
+}
+
+function buildCommand(argv) {
   const PKG_CONFIG_PATH =
     "/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig:/usr/local/share/pkgconfig:/usr/lib64/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig:/app/lib/pkgconfig:/app/share/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig";
 
@@ -145,12 +151,11 @@ function buildCommand(argv) {
     "build",
     "--share=network",
     `--filesystem=${path}`,
-    `--filesystem=${path}/.flatpak/repo`,
-    `--env=PATH=${PATH}`,
-    `--env=LD_LIBRARY_PATH=${LD_LIBRARY_PATH}`,
+    `--filesystem=${path}/.frun/repo`,
+    ...getCommonArguments(),
     `--env=PKG_CONFIG_PATH=${PKG_CONFIG_PATH}`,
-    `--filesystem=${path}/_build`,
-    `${path}/.flatpak/repo`,
+    `--filesystem=${path}/.frun/_build`,
+    `${path}/.frun/repo`,
     ...argv,
   ]);
 }
@@ -165,12 +170,14 @@ async function runCommand(argv) {
       `--bind-mount=/run/user/1000/doc=/run/user/1000/doc/by-app/${flatpak_id}`,
       ...manifest["finish-args"],
 
+      ...getCommonArguments(),
+
       // Non default permissions, see Permissions.js
       // consider getting installed overrides instead with
       // flatpak override --user --show re.sonny.Workbench.Devel
       "--share=network",
       "--socket=pulseaudio",
-      "--device=input",
+      "--device=all", // using "all" instead of "device" for broader compatibility
 
       "--talk-name=org.freedesktop.portal.*",
       "--talk-name=org.a11y.Bus",
@@ -183,7 +190,7 @@ async function runCommand(argv) {
       `--filesystem=${home}/.cache/fontconfig:ro`,
       `--bind-mount=/run/host/user-fonts-cache=${home}/.cache/fontconfig`,
       `--bind-mount=/run/host/font-dirs.xml=${home}/.cache/font-dirs.xml`,
-      `${path}/.flatpak/repo`,
+      `${path}/.frun/repo`,
       ...argv,
     ],
     { verbose: true },
@@ -233,7 +240,7 @@ async function exec(argv, { cancellable = null /*, verbose = false*/ }) {
   //   ? Gio.SubprocessFlags.NONE
   //   : Gio.SubprocessFlags.STDOUT_SILENCE;
 
-  const flags = Gio.SubprocessFlags.NONE;
+  const flags = Gio.SubprocessFlags.STDIN_INHERIT;
 
   const proc = new Gio.Subprocess({
     argv,

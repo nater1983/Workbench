@@ -11,18 +11,19 @@ jobs:
   CI:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "npm"
 
       - name: Install host dependencies
         run: |
-          sudo apt-get install flatpak mutter flatpak-builder
+          sudo apt update
+          sudo apt-get install flatpak mutter flatpak-builder gjs
 
       # Restore caches
       - name: Restore Flatpak dependencies
