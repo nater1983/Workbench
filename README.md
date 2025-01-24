@@ -45,7 +45,7 @@ Among other things, Workbench comes with
 <details>
   <summary>Disable code formatting</summary>
 
-[JavaScript](https://docs.rome.tools/formatter/#ignoring-code)
+[JavaScript](https://biomejs.dev/formatter/#ignore-code)
 
 [CSS](https://prettier.io/docs/en/ignore.html#css)
 
