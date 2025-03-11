@@ -9,13 +9,12 @@ export default function ShortcutsWindow({ application }) {
 
   const action_shortcuts = new Gio.SimpleAction({
     name: "shortcuts",
-    parameter_type: null,
   });
   action_shortcuts.connect("activate", () => {
     if (!window) {
       ({ window } = build(resource));
-      window.set_transient_for(application.get_active_window());
     }
+    window.set_transient_for(application.active_window);
     window.present();
   });
   application.add_action(action_shortcuts);

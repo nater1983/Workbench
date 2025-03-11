@@ -1,9 +1,13 @@
-project('Workbench', ['vala', 'c', 'rust'],
+project(
+  'Workbench',
+  ['vala', 'c', 'rust'],
   version: '47.1',
-  meson_version: '>= 0.64.0',
+  meson_version: '>= 1.0.0',
   license: 'GPL-3.0-only',
-  default_options : [
+  default_options: [
     'libdir=lib',
+    'warning_level=2',
+    'werror=false',
   ],
 )
 
@@ -33,5 +37,5 @@ subdir('src')
 gnome.post_install(
   glib_compile_schemas: true,
   gtk_update_icon_cache: true,
-  update_desktop_database: true
+  update_desktop_database: true,
 )

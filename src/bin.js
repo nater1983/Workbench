@@ -1,7 +1,6 @@
 #!@GJS@ -m
 
 import { exit, programArgs } from "system";
-import GLib from "gi://GLib";
 import { setConsoleLogDomain } from "console";
 import Xdp from "gi://Xdp";
 
@@ -14,7 +13,6 @@ imports.package.init({
   datadir: "@datadir@",
 });
 setConsoleLogDomain(pkg.name);
-GLib.set_application_name("Workbench");
 
 if (!Xdp.Portal.running_under_flatpak()) {
   console.error(
