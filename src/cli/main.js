@@ -133,22 +133,24 @@ async function ci({ filenames }) {
 
     const file_blueprint = demo_dir.get_child("main.blp");
     if (file_blueprint.query_exists(null)) {
-      ({ template, builder, blueprint_object_ids } = await blueprint({
-        file_blueprint,
-        lsp_clients,
-      }));
+      const result = await blueprint({
+        file: file_blueprint,
+        lspc: lsp_clients.blueprint,
+      });
+      if (result === false) return;
+      ({ template, builder, blueprint_object_ids } = result);
     }
 
     const file_css = demo_dir.get_child("main.css");
     if (file_css.query_exists(null)) {
-      await css({ file_css, lsp_clients });
+      await css({ file: file_css, lspc: lsp_clients.css });
     }
 
     const file_javascript = demo_dir.get_child("main.js");
     if (file_javascript.query_exists(null)) {
       await javascript({
-        file_javascript,
-        lsp_clients,
+        file: file_javascript,
+        lspc: lsp_clients.javascript,
         blueprint_object_ids,
         demo_dir,
         application,
@@ -161,8 +163,8 @@ async function ci({ filenames }) {
     const file_typescript = demo_dir.get_child("main.ts");
     if (file_typescript.query_exists(null)) {
       await typescript({
-        file_typescript,
-        lsp_clients,
+        file: file_typescript,
+        lspc: lsp_clients.typescript,
         blueprint_object_ids,
         demo_dir,
         application,
@@ -174,17 +176,17 @@ async function ci({ filenames }) {
 
     const file_vala = demo_dir.get_child("main.vala");
     if (file_vala.query_exists(null)) {
-      await vala({ file_vala, lsp_clients, demo_dir });
+      await vala({ file: file_vala, lspc: lsp_clients.vala, demo_dir });
     }
 
     const file_python = demo_dir.get_child("main.py");
     if (file_python.query_exists(null)) {
-      await python({ file_python, lsp_clients });
+      await python({ file: file_python, lspc: lsp_clients.python });
     }
 
     const file_rust = demo_dir.get_child("code.rs");
     if (file_rust.query_exists(null)) {
-      await rust({ file_rust, lsp_clients });
+      await rust({ file: file_rust, lspc: lsp_clients.rust });
     }
 
     await Promise.all(

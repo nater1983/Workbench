@@ -1,12 +1,13 @@
 /* eslint-disable no-restricted-globals */
 
 import { getLanguage } from "../common.js";
-import { waitForDiagnostics } from "./lint.js";
-import { serializeDiagnostics, checkFile, getCodeObjectIds } from "./util.js";
+import { checkFile, getCodeObjectIds, diagnose } from "./util.js";
+
+const languageId = "typescript";
 
 export default async function typescript({
-  file_typescript,
-  lsp_clients,
+  file,
+  lspc,
   blueprint_object_ids,
   demo_dir,
   application,
@@ -14,39 +15,16 @@ export default async function typescript({
   template,
   window,
 }) {
-  print(`  ${file_typescript.get_path()}`);
+  print(`  ${file.get_path()}`);
 
-  const uri = file_typescript.get_uri();
-  const languageId = "typescript";
-  let version = 0;
-
-  const [contents] = await file_typescript.load_contents_async(null);
-  const text = new TextDecoder().decode(contents);
-
-  await lsp_clients.typescript._notify("textDocument/didOpen", {
-    textDocument: {
-      uri,
-      languageId,
-      version: version++,
-      text,
-    },
-  });
-
-  const diagnostics = await waitForDiagnostics({
-    uri,
-    lspc: lsp_clients.typescript,
-  });
-  if (diagnostics.length > 0) {
-    printerr(serializeDiagnostics({ diagnostics }));
-    return false;
-  }
-  print(`  ✅ lints`);
+  const text = await diagnose({ file, lspc, languageId });
+  if (text === false) return false;
 
   const checks = await checkFile({
-    lspc: lsp_clients.typescript,
-    file: file_typescript,
-    lang: getLanguage("typescript"),
-    uri,
+    lspc,
+    file,
+    lang: getLanguage(languageId),
+    uri: file.get_uri(),
   });
   if (!checks) return false;
 
@@ -69,12 +47,12 @@ export default async function typescript({
     preview() {},
   };
 
-  await import(`file://${file_typescript.get_path()}`);
+  await import(`file://${file.get_path()}`);
   print("  ✅ runs");
 
-  await lsp_clients.typescript._notify("textDocument/didClose", {
+  await lspc._notify("textDocument/didClose", {
     textDocument: {
-      uri,
+      uri: file.get_uri(),
     },
   });
 }

@@ -225,7 +225,7 @@ async function exec(argv, { cancellable = null /*, verbose = false*/ }) {
     return arg.toString();
   });
 
-  console.debug(`$ ${argv}`);
+  console.debug(`$ ${argv.join(" ")}`);
 
   let cancelId = 0;
 

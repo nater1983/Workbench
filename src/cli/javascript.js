@@ -1,12 +1,13 @@
 /* eslint-disable no-restricted-globals */
 
 import { getLanguage } from "../common.js";
-import { waitForDiagnostics } from "./lint.js";
-import { serializeDiagnostics, checkFile, getCodeObjectIds } from "./util.js";
+import { checkFile, getCodeObjectIds, diagnose } from "./util.js";
 
-export default async function typescript({
-  file_javascript,
-  lsp_clients,
+const languageId = "javascript";
+
+export default async function javascript({
+  file,
+  lspc,
   blueprint_object_ids,
   demo_dir,
   application,
@@ -14,39 +15,16 @@ export default async function typescript({
   template,
   window,
 }) {
-  print(`  ${file_javascript.get_path()}`);
+  print(`  ${file.get_path()}`);
 
-  const uri = file_javascript.get_uri();
-  const languageId = "javascript";
-  let version = 0;
-
-  const [contents] = await file_javascript.load_contents_async(null);
-  const text = new TextDecoder().decode(contents);
-
-  await lsp_clients.javascript._notify("textDocument/didOpen", {
-    textDocument: {
-      uri,
-      languageId,
-      version: version++,
-      text,
-    },
-  });
-
-  const diagnostics = await waitForDiagnostics({
-    uri,
-    lspc: lsp_clients.javascript,
-  });
-  if (diagnostics.length > 0) {
-    printerr(serializeDiagnostics({ diagnostics }));
-    return false;
-  }
-  print(`  ✅ lints`);
+  const text = await diagnose({ file, lspc, languageId });
+  if (text === false) return false;
 
   const checks = await checkFile({
-    lspc: lsp_clients.javascript,
-    file: file_javascript,
+    lspc: lspc,
+    file: file,
     lang: getLanguage("javascript"),
-    uri,
+    uri: file.get_uri(),
   });
   if (!checks) return false;
 
@@ -69,12 +47,12 @@ export default async function typescript({
     preview() {},
   };
 
-  await import(`file://${file_javascript.get_path()}`);
+  await import(`file://${file.get_path()}`);
   print("  ✅ runs");
 
-  await lsp_clients.javascript._notify("textDocument/didClose", {
+  await lspc._notify("textDocument/didClose", {
     textDocument: {
-      uri,
+      uri: file.get_uri(),
     },
   });
 }

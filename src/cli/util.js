@@ -4,6 +4,45 @@ import Gtk from "gi://Gtk";
 
 import { diagnostic_severities } from "../lsp/LSP.js";
 import { formatting } from "./format.js";
+import { waitForDiagnostics } from "./lint.js";
+
+export async function diagnose({
+  file,
+  lspc,
+  languageId,
+  filter = (_diagnostic) => {
+    return true;
+  },
+}) {
+  const [contents] = await file.load_contents_async(null);
+  const text = new TextDecoder().decode(contents);
+
+  const uri = file.get_uri();
+  let version = 0;
+
+  await lspc._notify("textDocument/didOpen", {
+    textDocument: {
+      uri,
+      languageId,
+      version: version++,
+      text,
+    },
+  });
+
+  let diagnostics = await waitForDiagnostics({
+    uri,
+    lspc,
+  });
+  diagnostics = diagnostics.filter(filter);
+  if (diagnostics.length > 0) {
+    printerr(serializeDiagnostics({ diagnostics }));
+    return false;
+  }
+
+  print(`  ✅ lints`);
+
+  return text;
+}
 
 export function serializeDiagnostics({ diagnostics }) {
   return (

@@ -5,51 +5,37 @@ import Gtk from "gi://Gtk";
 import { getLanguage } from "../common.js";
 import { parse } from "../langs/xml/xml.js";
 import { LSPError } from "../lsp/LSP.js";
-import { waitForDiagnostics } from "./lint.js";
-import { serializeDiagnostics, checkFile } from "./util.js";
+import { checkFile, diagnose } from "./util.js";
 
-export default async function blueprint({ file_blueprint, lsp_clients }) {
-  print(`  ${file_blueprint.get_path()}`);
-  const uri = file_blueprint.get_uri();
-  const languageId = "blueprint";
-  let version = 0;
+const languageId = "blueprint";
 
-  const [contents] = await file_blueprint.load_contents_async(null);
-  const text = new TextDecoder().decode(contents);
+export default async function blueprint({ file, lspc }) {
+  print(`  ${file.get_path()}`);
 
-  await lsp_clients.blueprint._notify("textDocument/didOpen", {
+  const text = await diagnose({
+    file,
+    lspc,
+    languageId,
+    filter(diagnostic) {
+      // No replacements yet
+      return ![
+        "Gtk.ShortcutsShortcut is deprecated\nhint: This widget will be removed in GTK 5",
+        "Gtk.ShortcutLabel is deprecated\nhint: This widget will be removed in GTK 5",
+      ].includes(diagnostic.message);
+    },
+  });
+  if (text === false) return false;
+
+  const { xml } = await lspc._request("textDocument/x-blueprint-compile", {
     textDocument: {
-      uri,
-      languageId,
-      version: version++,
-      text,
+      uri: file.get_uri(),
     },
   });
-
-  const diagnostics = await waitForDiagnostics({
-    uri,
-    lspc: lsp_clients.blueprint,
-  });
-  if (diagnostics.length > 0) {
-    printerr(serializeDiagnostics({ diagnostics }));
-    return false;
-  }
-
-  print(`  ✅ lints`);
-
-  const { xml } = await lsp_clients.blueprint._request(
-    "textDocument/x-blueprint-compile",
-    {
-      textDocument: {
-        uri,
-      },
-    },
-  );
 
   print(`  ✅ compiles`);
 
   try {
-    await lsp_clients.blueprint._request("x-blueprint/decompile", {
+    await lspc._request("x-blueprint/decompile", {
       text: xml,
     });
     print("  ✅ decompiles");
@@ -68,16 +54,16 @@ export default async function blueprint({ file_blueprint, lsp_clients }) {
   }
 
   const checks = await checkFile({
-    lspc: lsp_clients.blueprint,
-    file: file_blueprint,
-    lang: getLanguage("blueprint"),
-    uri,
+    lspc,
+    file,
+    lang: getLanguage(languageId),
+    uri: file.get_uri(),
   });
   if (!checks) return false;
 
-  await lsp_clients.blueprint._notify("textDocument/didClose", {
+  await lspc._notify("textDocument/didClose", {
     textDocument: {
-      uri,
+      uri: file.get_uri(),
     },
   });
 

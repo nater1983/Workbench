@@ -4,17 +4,18 @@ import { getLanguage } from "../common.js";
 
 import { checkFile } from "./util.js";
 
-export default async function rust({ file_rust, lsp_clients }) {
-  print(`  ${file_rust.get_path()}`);
+const languageId = "rust";
 
-  const uri = file_rust.get_uri();
-  const languageId = "rust";
+export default async function rust({ file, lspc }) {
+  print(`  ${file.get_path()}`);
+
+  const uri = file.get_uri();
   let version = 0;
 
-  const [contents] = await file_rust.load_contents_async(null);
+  const [contents] = await file.load_contents_async(null);
   const text = new TextDecoder().decode(contents);
 
-  await lsp_clients.rust._notify("textDocument/didOpen", {
+  await lspc._notify("textDocument/didOpen", {
     textDocument: {
       uri,
       languageId,
@@ -38,14 +39,14 @@ export default async function rust({ file_rust, lsp_clients }) {
   // print(`  ✅ lints`);
 
   const checks = await checkFile({
-    lspc: lsp_clients.rust,
-    file: file_rust,
-    lang: getLanguage("rust"),
+    lspc,
+    file,
+    lang: getLanguage(languageId),
     uri,
   });
   if (!checks) return false;
 
-  await lsp_clients.rust._notify("textDocument/didClose", {
+  await lspc._notify("textDocument/didClose", {
     textDocument: {
       uri,
     },
