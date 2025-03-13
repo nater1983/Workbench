@@ -21,6 +21,7 @@ import typescript from "./typescript.js";
 import vala from "./vala.js";
 import python from "./python.js";
 import rust from "./rust.js";
+import { Interrupt } from "./util.js";
 
 GObject.type_ensure(Shumate.SimpleMap);
 GObject.type_ensure(WebKit.WebView);
@@ -30,8 +31,16 @@ export async function main([action, ...args]) {
 
   if (action === "ci") {
     const filenames = args;
-    const success = await ci({ filenames });
-    return success ? 0 : 1;
+    try {
+      await ci({ filenames });
+      return 0;
+    } catch (err) {
+      if (err instanceof Interrupt) {
+        return 1;
+      } else {
+        throw err;
+      }
+    }
   }
 
   const [language_id, ...filenames] = args;
@@ -66,19 +75,27 @@ export async function main([action, ...args]) {
     });
   }
 
-  let success = false;
-
-  if (action === "lint") {
-    success = await lint({ filenames, lang, lspc, ci: false });
-  } else if (action === "check") {
-    success = await lint({ filenames, lang, lspc, ci: true });
-  } else if (action === "format") {
-    success = await format({ filenames, lang, lspc });
-  } else {
-    printerr(`Unknown action "${action}"}`);
+  try {
+    if (action === "lint") {
+      await lint({ filenames, lang, lspc, ci: false });
+      return 0;
+    } else if (action === "check") {
+      await lint({ filenames, lang, lspc, ci: true });
+      return 0;
+    } else if (action === "format") {
+      await format({ filenames, lang, lspc });
+      return 0;
+    } else {
+      printerr(`Unknown action "${action}"}`);
+      return 1;
+    }
+  } catch (err) {
+    if (err instanceof Interrupt) {
+      return 1;
+    } else {
+      throw err;
+    }
   }
-
-  return success ? 0 : 1;
 }
 
 const application = new Adw.Application();
@@ -133,12 +150,10 @@ async function ci({ filenames }) {
 
     const file_blueprint = demo_dir.get_child("main.blp");
     if (file_blueprint.query_exists(null)) {
-      const result = await blueprint({
+      ({ template, builder, blueprint_object_ids } = await blueprint({
         file: file_blueprint,
         lspc: lsp_clients.blueprint,
-      });
-      if (result === false) return;
-      ({ template, builder, blueprint_object_ids } = result);
+      }));
     }
 
     const file_css = demo_dir.get_child("main.css");
@@ -195,8 +210,6 @@ async function ci({ filenames }) {
       }),
     );
   }
-
-  return true;
 }
 
 const key_file = new GLib.KeyFile();

@@ -4,7 +4,13 @@ import Gtk from "gi://Gtk";
 
 import { diagnostic_severities } from "../lsp/LSP.js";
 import { formatting } from "./format.js";
-import { waitForDiagnostics } from "./lint.js";
+
+export class Interrupt extends Error {
+  constructor(...args) {
+    super(...args);
+    Error.captureStackTrace?.(this, Interrupt);
+  }
+}
 
 export async function diagnose({
   file,
@@ -36,7 +42,7 @@ export async function diagnose({
   diagnostics = diagnostics.filter(filter);
   if (diagnostics.length > 0) {
     printerr(serializeDiagnostics({ diagnostics }));
-    return false;
+    throw new Interrupt();
   }
 
   print(`  ✅ lints`);
@@ -73,14 +79,13 @@ export async function checkFile({ lspc, file, lang, uri }) {
 
   if (buffer_tmp.text === buffer.text) {
     print(`  ✅ checks`);
-    return true;
   } else {
     printerr(
       `  ❌ formatting differs - open and run ${file
         .get_parent()
         .get_basename()} with Workbench to fix`,
     );
-    return false;
+    throw new Interrupt();
   }
 }
 
@@ -90,4 +95,17 @@ export function getCodeObjectIds(text) {
     object_ids.push(match[1]);
   }
   return object_ids;
+}
+
+export function waitForDiagnostics({ uri, lspc }) {
+  return new Promise((resolve) => {
+    const handler_id = lspc.connect(
+      "notification::textDocument/publishDiagnostics",
+      (_self, params) => {
+        if (uri !== params.uri) return;
+        lspc.disconnect(handler_id);
+        resolve(params.diagnostics);
+      },
+    );
+  });
 }

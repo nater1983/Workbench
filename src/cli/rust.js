@@ -27,24 +27,18 @@ export default async function rust({ file, lspc }) {
   // FIXME: rust analyzer doesn't publish diagnostics if there are none
   // probably we should switch to pulling diagnostics but unknown if supported
   // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.18/specification/#textDocument_pullDiagnostics
-
-  // const diagnostics = await waitForDiagnostics({
-  //   uri,
-  //   lspc: lsp_clients.rust,
+  // await diagnose({
+  //   file,
+  //   lspc,
+  //   languageId,
   // });
-  // if (diagnostics.length > 0) {
-  //   printerr(serializeDiagnostics({ diagnostics }));
-  //   return false;
-  // }
-  // print(`  ✅ lints`);
 
-  const checks = await checkFile({
+  await checkFile({
     lspc,
     file,
     lang: getLanguage(languageId),
     uri,
   });
-  if (!checks) return false;
 
   await lspc._notify("textDocument/didClose", {
     textDocument: {

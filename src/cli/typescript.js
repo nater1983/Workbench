@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-globals */
 
 import { getLanguage } from "../common.js";
-import { checkFile, getCodeObjectIds, diagnose } from "./util.js";
+import { checkFile, getCodeObjectIds, diagnose, Interrupt } from "./util.js";
 
 const languageId = "typescript";
 
@@ -18,21 +18,19 @@ export default async function typescript({
   print(`  ${file.get_path()}`);
 
   const text = await diagnose({ file, lspc, languageId });
-  if (text === false) return false;
 
-  const checks = await checkFile({
+  await checkFile({
     lspc,
     file,
     lang: getLanguage(languageId),
     uri: file.get_uri(),
   });
-  if (!checks) return false;
 
   const js_object_ids = getCodeObjectIds(text);
   for (const object_id of js_object_ids) {
     if (!blueprint_object_ids.includes(object_id)) {
       print(`  ❌ Reference to inexistant object id "${object_id}"`);
-      return false;
+      throw new Interrupt();
     }
   }
 

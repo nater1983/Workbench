@@ -12,7 +12,7 @@ const languageId = "blueprint";
 export default async function blueprint({ file, lspc }) {
   print(`  ${file.get_path()}`);
 
-  const text = await diagnose({
+  await diagnose({
     file,
     lspc,
     languageId,
@@ -21,10 +21,12 @@ export default async function blueprint({ file, lspc }) {
       return ![
         "Gtk.ShortcutsShortcut is deprecated\nhint: This widget will be removed in GTK 5",
         "Gtk.ShortcutLabel is deprecated\nhint: This widget will be removed in GTK 5",
+        "Gtk.ShortcutsWindow is deprecated\nhint: This widget will be removed in GTK 5",
+        "Gtk.ShortcutsGroup is deprecated\nhint: This widget will be removed in GTK 5",
+        "Gtk.ShortcutsSection is deprecated\nhint: This widget will be removed in GTK 5",
       ].includes(diagnostic.message);
     },
   });
-  if (text === false) return false;
 
   const { xml } = await lspc._request("textDocument/x-blueprint-compile", {
     textDocument: {
@@ -53,13 +55,12 @@ export default async function blueprint({ file, lspc }) {
     }
   }
 
-  const checks = await checkFile({
+  await checkFile({
     lspc,
     file,
     lang: getLanguage(languageId),
     uri: file.get_uri(),
   });
-  if (!checks) return false;
 
   await lspc._notify("textDocument/didClose", {
     textDocument: {

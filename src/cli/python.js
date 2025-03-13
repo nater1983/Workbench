@@ -13,16 +13,14 @@ export default async function python({ file, lspc }) {
     settings: PYTHON_LSP_CONFIG,
   });
 
-  const text = await diagnose({ file, lspc, languageId });
-  if (text === false) return false;
+  await diagnose({ file, lspc, languageId });
 
-  const checks = await checkFile({
+  await checkFile({
     lspc,
     file,
     lang: getLanguage(languageId),
     uri: file.get_uri(),
   });
-  if (!checks) return false;
 
   await lspc._notify("textDocument/didClose", {
     textDocument: {

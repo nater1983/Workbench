@@ -20,7 +20,7 @@ export default async function vala({ file, lspc, demo_dir }) {
     null,
   );
 
-  const text = await diagnose({
+  await diagnose({
     file,
     lspc,
     languageId,
@@ -46,15 +46,13 @@ export default async function vala({ file, lspc, demo_dir }) {
       return true;
     },
   });
-  if (text === false) return false;
 
-  const checks = await checkFile({
+  await checkFile({
     lspc,
     file,
     lang: getLanguage("vala"),
     uri: file.get_uri(),
   });
-  if (!checks) return false;
 
   await lspc._notify("textDocument/didClose", {
     textDocument: {

@@ -4,6 +4,7 @@ import Gio from "gi://Gio";
 
 import { formatting } from "./format.js";
 import { diagnostic_severities } from "../lsp/LSP.js";
+import { waitForDiagnostics } from "./util.js";
 
 export default async function lint({ filenames, lang, lspc, ci }) {
   let success = true;
@@ -45,19 +46,6 @@ export default async function lint({ filenames, lang, lspc, ci }) {
   }
 
   return success;
-}
-
-export function waitForDiagnostics({ uri, lspc }) {
-  return new Promise((resolve) => {
-    const handler_id = lspc.connect(
-      "notification::textDocument/publishDiagnostics",
-      (_self, params) => {
-        if (uri !== params.uri) return;
-        lspc.disconnect(handler_id);
-        resolve(params.diagnostics);
-      },
-    );
-  });
 }
 
 function serializeDiagnostics({ file, diagnostics }) {
