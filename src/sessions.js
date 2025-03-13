@@ -9,7 +9,6 @@ import {
   getNowForFilename,
   demos_dir,
   settings as global_settings,
-  settings,
   copyDirectory,
   decode,
   removeDirectory,
@@ -40,7 +39,7 @@ export async function getSessions() {
   }
 
   // Projects
-  const recent_projects = settings.get_strv("recent-projects");
+  const recent_projects = global_settings.get_strv("recent-projects");
   for (const path of recent_projects) {
     const file = Gio.File.new_for_path(path);
     if (
@@ -165,15 +164,15 @@ export class Session {
 }
 
 export function addToRecentProjects(path) {
-  const recent_projects = new Set(settings.get_strv("recent-projects"));
+  const recent_projects = new Set(global_settings.get_strv("recent-projects"));
   recent_projects.add(path);
-  settings.set_strv("recent-projects", [...recent_projects]);
+  global_settings.set_strv("recent-projects", [...recent_projects]);
 }
 
 export function removeFromRecentProjects(path) {
-  const recent_projects = new Set(settings.get_strv("recent-projects"));
+  const recent_projects = new Set(global_settings.get_strv("recent-projects"));
   recent_projects.delete(path);
-  settings.set_strv("recent-projects", [...recent_projects]);
+  global_settings.set_strv("recent-projects", [...recent_projects]);
 }
 
 async function buildGResourceIcons(file) {
