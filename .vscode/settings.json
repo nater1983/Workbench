@@ -30,10 +30,10 @@
     "builddir"
   ],
   "vala.languageServerPath": "${workspaceFolder}/.flatpak/vala-language-server.sh",
-  "mesonbuild.mesonPath": "${workspaceFolder}/.flatpak/meson.sh",
   "[meson]": {
     "editor.defaultFormatter": "mesonbuild.mesonbuild"
   },
   "mesonbuild.configureOnOpen": false,
-  "mesonbuild.buildFolder": "_build"
+  "mesonbuild.buildFolder": "_build",
+  "mesonbuild.mesonPath": "${workspaceFolder}/.flatpak/meson.sh"
 }
