@@ -1,6 +1,7 @@
 /* eslint-disable no-restricted-globals */
 
 import { getLanguage } from "../common.js";
+import { setupTypeScriptProject } from "../langs/typescript/typescript.js";
 import { checkFile, getCodeObjectIds, diagnose, Interrupt } from "./util.js";
 
 const languageId = "typescript";
@@ -16,6 +17,8 @@ export default async function typescript({
   window,
 }) {
   print(`  ${file.get_path()}`);
+
+  await setupTypeScriptProject(file.get_parent(), { lspc });
 
   const text = await diagnose({ file, lspc, languageId });
 
