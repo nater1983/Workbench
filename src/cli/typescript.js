@@ -45,8 +45,9 @@ export default async function typescript({
     preview() {},
   };
 
-  await import(`file://${file.get_path()}`);
-  print("  ✅ runs");
+  // TODO: Support running TypeScript files by compiling them first
+  // await import(`file://${file.get_path()}`);
+  // print("  ✅ runs");
 
   await lspc._notify("textDocument/didClose", {
     textDocument: {

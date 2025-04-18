@@ -2,7 +2,7 @@
 
 import Adw from "gi://Adw";
 import Gtk from "gi://Gtk?version=4.0";
-// import GObject from "gi://GObject";
+import GObject from "gi://GObject";
 
 declare global {
   const workbench: {
@@ -12,6 +12,6 @@ declare global {
     template: string;
     resolve(path: string): string;
     preview(object: Gtk.Widget): void;
-    // build(params: Record<string, Function | GObject.Object>): void;
+    build(params: Record<string, Function | GObject.Object>): void;
   };
 }
