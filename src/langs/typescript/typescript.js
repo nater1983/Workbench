@@ -12,7 +12,7 @@ export function setup({ document }) {
   const lspc = createLSPClient({
     lang: getLanguage("typescript"),
     root_uri: file.get_parent().get_uri(),
-    quiet: true,
+    quiet: false,
   });
   lspc.buffer = buffer;
   lspc.uri = file.get_uri();
@@ -48,9 +48,10 @@ export async function setupTypeScriptProject(destination, document) {
     Gio.FileCopyFlags.NONE,
   );
 
+  // FIXME: hangs
   // Notify the language server that the tsconfig file was created
   // to initialized diagnostics and type checkings
-  await document.lspc.notify("workspace/didCreateFile", {
-    files: [{ uri: destination_file.get_uri() }],
-  });
+  // await document.lspc.notify("workspace/didCreateFile", {
+  //   files: [{ uri: destination_file.get_uri() }],
+  // });
 }
