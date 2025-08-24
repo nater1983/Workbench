@@ -10,6 +10,16 @@ const nodeInfo = Gio.DBusNodeInfo.new_for_xml(previewer_xml);
 const interface_info = nodeInfo.interfaces[0];
 
 const guid = Gio.dbus_generate_guid();
+const path_dir = buildRuntimePath();
+
+try {
+  Gio.File.new_for_path(path_dir).make_directory_with_parents(null);
+} catch (err) {
+  if (!err.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.EXISTS)) {
+    throw err;
+  }
+}
+
 const path = buildRuntimePath(`workbench_preview_dbus_socket_${Date.now()}`);
 const server = Gio.DBusServer.new_sync(
   `unix:path=${path}`,

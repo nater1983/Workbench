@@ -16,18 +16,32 @@ export function getFlatpakInfo() {
 }
 
 export function getFlatpakId() {
-  return getFlatpakInfo().get_string("Application", "name");
+  try {
+    const info = getFlatpakInfo();
+    if (info) {
+      return info.get_string("Application", "name");
+    }
+  } catch (err) {
+    log(`No Flatpak Application group in /.flatpak-info: ${err}`);
+  }
+
+  return "re.sonny.Workbench";
 }
 
 // https://repology.org/project/flatpak/versions
 export function isDeviceInputOverrideAvailable(flatpak_version) {
-  flatpak_version ??= getFlatpakInfo().get_string(
-    "Instance",
-    "flatpak-version",
-  );
+  try {
+    flatpak_version ??= getFlatpakInfo()?.get_string(
+      "Instance",
+      "flatpak-version",
+    );
+  } catch (_) {
+    return false;
+  }
 
   // https://github.com/flatpak/flatpak/releases/tag/1.15.6
   return (
+    flatpak_version &&
     flatpak_version.localeCompare("1.15.6", undefined, {
       numeric: true,
       sensitivity: "base",

@@ -50,10 +50,17 @@ export function Permissions({ window }) {
 }
 
 const missing_permissions = (() => {
-  const flatpak_info = getFlatpakInfo();
-  const shared = flatpak_info.get_string_list("Context", "shared");
-  const sockets = flatpak_info.get_string_list("Context", "sockets");
-  const devices = flatpak_info.get_string_list("Context", "devices");
+  let shared = [], sockets = [], devices = [];
+  try {
+    const flatpak_info = getFlatpakInfo();
+    if (flatpak_info) {
+      shared = flatpak_info.get_string_list("Context", "shared");
+      sockets = flatpak_info.get_string_list("Context", "sockets");
+      devices = flatpak_info.get_string_list("Context", "devices");
+    }
+  } catch (_) {
+
+  }
 
   return (
     !shared.includes("network") ||

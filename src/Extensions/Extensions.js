@@ -81,8 +81,17 @@ export function isTypeScriptAvailable() {
 
 const llvm = "llvm18";
 const node = "node20";
-const runtime = getFlatpakInfo().get_string("Application", "runtime");
-const freedesktop_version = runtime.endsWith("master") ? "24.08" : "24.08";
+
+let freedesktop_version = "24.08";
+try {
+  const flatpak_info = getFlatpakInfo();
+  if (flatpak_info) {
+    const runtime = flatpak_info.get_string("Application", "runtime");
+    freedesktop_version = runtime && runtime.endsWith("master") ? "24.08" : "24.08";
+  }
+} catch (err) {
+  log(`Flatpak runtime info unavailable: ${err}`);
+}
 
 export function isTypeScriptEnabled() {
   return settings.get_boolean("typescript");

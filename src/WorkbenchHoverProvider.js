@@ -1,6 +1,6 @@
 import GObject from "gi://GObject";
 import Gtk from "gi://Gtk";
-import Source from "gi://GtkSource";
+import Source from "gi://GtkSource?version=5";
 
 import { rangeEquals } from "./lsp/LSP.js";
 import { registerClass } from "./overrides.js";

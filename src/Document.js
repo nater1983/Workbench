@@ -1,4 +1,4 @@
-import Source from "gi://GtkSource";
+import Source from "gi://GtkSource?version=5";
 import Gio from "gi://Gio";
 import GLib from "gi://GLib";
 

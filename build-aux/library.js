@@ -226,25 +226,17 @@ async function copyDirectory(source, destination) {
   }
 }
 
-const key_file = new GLib.KeyFile();
-key_file.load_from_file("/.flatpak-info", GLib.KeyFileFlags.NONE);
-// runtime/org.gnome.Sdk/x86_64/master
-const [, , , runtime_version] = key_file
-  .get_string("Application", "runtime")
-  .split("/");
-
 function isDemoCompatible(demo) {
   const demo_runtime_version = demo["runtime-version"];
 
-  if (demo_runtime_version === "master") {
-    return runtime_version === "master";
-  } else if (runtime_version === "master") {
+  if (!demo_runtime_version) {
     return true;
-  } else if (!demo_runtime_version) {
+  } 
+  if (demo_runtime_version ==="master') {
     return true;
   }
 
-  return +runtime_version >= +demo_runtime_version;
+  return true;
 }
 
 loop.run();
